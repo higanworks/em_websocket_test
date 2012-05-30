@@ -8,7 +8,6 @@ require "em-websocket"
 @clients = []
 
 EM::WebSocket.start(host: "0.0.0.0", port: 8081) do |ws|
-  
   ws.onopen do
     @clients << ws
     p "open with: #{@clients.size}"
@@ -16,11 +15,12 @@ EM::WebSocket.start(host: "0.0.0.0", port: 8081) do |ws|
 
   ws.onmessage do |message|
     puts "on message: #{message}."
-    
-    Benchmark.measure do 
-      @clients.each do |client|
-        client.send(message)
-      end
+
+    wait_time = message.to_i
+
+    timer = EM::Timer.new(wait_time) do
+      ws.send("wait: #{wait_time}s")
+      timer.cancel
     end
 
     puts "complete send message."
